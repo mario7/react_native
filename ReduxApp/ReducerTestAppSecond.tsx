@@ -4,7 +4,7 @@
 //https://qiita.com/stranger1989/items/4819b5e4539caea828bf
 
 import React, {useReducer} from 'react'
-import { createStore} from '@reduxjs/toolkit';
+import { combineReducers, createStore} from '@reduxjs/toolkit';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 
 import {View, Text, StatusBar, SafeAreaView, Button, } from 'react-native';
@@ -30,7 +30,9 @@ const initialState = {num: 0};
     }
 }
 
-const store = createStore(reducer, initialState)
+//const reducers = combineReducers({ reducer});
+
+const store = createStore(reducer)
 
 const ReducerTestAppSecond = () => {
     return (
