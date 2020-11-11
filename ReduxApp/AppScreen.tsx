@@ -15,19 +15,39 @@ import { Button,
 
 import {StoreContext} from './ReducerTestAppFirst';
 
+import firebase from 'react-native-firebase';
+import firestore from 'react-native-firebase/firestore';
+
 const AppScreen: FC = () => {
 
     const { state, dispatch} = useContext(StoreContext);
     const [value, onChangeText] = React.useState('');
 
-    const [infos, setInfos] = useState(["a", "b", "c"])
-    
+    const [infos, setInfos] = useState([])
+
     const rows = infos.map ((info, index) =>
     
         <Text>{info}</Text>
     );
 
     var textInputRef = React.createRef<TextInput>();
+
+    
+    const documentRef = firebase.firestore().collection('messages');
+        
+    function loadDocument() {
+        documentRef.onSnapshot( snapshot => {
+            const messages = snapshot.docs.map((doc) => {
+                return doc.data();
+              });
+            setInfos(messages)
+        })
+    }
+
+    function saveDocument(message: String) {
+        documentRef.add(message)
+    }
+  
 
     return (
         <>
@@ -52,7 +72,8 @@ const AppScreen: FC = () => {
         <Button title="Add" 
                 onPress= {() => {
                     if(value != "") {
-                        setInfos( [...infos, value]);
+                        //setInfos( [...infos, value]);
+                        saveDocument(value)
                         textInputRef.current?.clear();
                         onChangeText("")
                     } else {
@@ -60,6 +81,11 @@ const AppScreen: FC = () => {
                     }
                    }
                  } />
+        <Button title="Load" 
+                onPress= {() => {
+                    loadDocument()
+                   }
+                 } />         
         </SafeAreaView>
         </>
     );
