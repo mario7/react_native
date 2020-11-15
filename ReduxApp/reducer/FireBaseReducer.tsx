@@ -2,10 +2,10 @@
 import firestore from '@react-native-firebase/firestore';
 import { createSlice } from '@reduxjs/toolkit';
 
-  const initial = [{message: 'message', sendTime: 'sendTime'}]
+  var results = []//[{message: 'message', sendTime: 'sendTime'}]
   // Stateの初期状態
   const initialState = {
-    chats: initial
+    chats: results
   };
 
   //const [infos, setInfos] = useState<Chat[]>([]);
@@ -16,26 +16,15 @@ import { createSlice } from '@reduxjs/toolkit';
       reducers: {
         loadChat: (state) => {
 
-          firestore().collection('messages').get().then(snapshot => {
-          //documentRef.onSnapshot(snapshot => {
-              const  results = []
-              snapshot.forEach(documentSnapshot => {
-                  console.log('User ID: ', documentSnapshot.id, documentSnapshot.data());
-                  const { message, sendTime } = documentSnapshot.data();
-                  console.log('loadDocument message:', message);
-                  console.log('loadDocument time:', sendTime);
-                  results.push( {message: message, sendTime: sendTime});
-                  //
-              });
-              results.map((info) => console.log('loadDocument', info.message) );
-              return Object.assign({}, state, { chats: results })
-          });
+          loadDocument()
+          return Object.assign({}, state, { chats: results })
+          
           
         },
         saveChat: (state, action) => {
           
           saveDocument(action.payload);
-          const results = loadDocument();
+          loadDocument();
           return Object.assign({}, state, { chats: results})
       }
     }
@@ -46,15 +35,16 @@ import { createSlice } from '@reduxjs/toolkit';
        
       //documentRef.get().then(snapshot => {
       const subscriber =  documentRef.onSnapshot(snapshot => {
-          const  results = []
+          const  list = []
           snapshot.forEach(documentSnapshot => {
               console.log('User ID: ', documentSnapshot.id, documentSnapshot.data());
               const { message, sendTime } = documentSnapshot.data();
               console.log('loadDocument message:', message);
               console.log('loadDocument time:', sendTime);
-              results.push( {message: message, sendTime: sendTime});
+              list.push( {message: message, sendTime: sendTime});
               
           });
+          results = list
           results.map((info) => console.log('loadDocument', info.message) );
       })
       return () => subscriber();
