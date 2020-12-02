@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Button,
         SafeAreaView,
         StatusBar,
@@ -11,36 +11,57 @@ import { Button,
 
 import {StoreContext} from './ReducerTestAppFirst';
 import {useSelector ,useDispatch} from 'react-redux';
-import {loadChat, saveChat} from './reducer/FireBaseReducer'
-import {setName, className}  from './reducer/SampleReducer'
+import {Chat, addChat, saveChat} from './reducer/FireBaseReducer'
+import firestore from '@react-native-firebase/firestore';
 
 const StoreTestAppScreen = () => {
 
     //const {state, dispatch} = useContext(StoreContext);
-    const [value, onChangeText] = React.useState('');
+    //const [value, onChangeText] = React.useState('');
 
-    // interface Chat {
-    //     message: String,
-    //     sendTime: String,
-    // }
     //const [infos, setInfos] = useState<Chat[]>([]);
     //const numRows = infos.map ((info) =><Text>{info.message}</Text>);
 
     var textInputRef = React.createRef<TextInput>();
 
-    const results = useSelector(state => state.list.chats );
+    const results = useSelector(state => state.list );
 
-    const firestoreRows = results.map ((chat) =><Text>{chat.message}</Text>);
-    // const firestoreRows() {
-    //     //console.log(result.list.chats);
-    //     //undefined is not an object(evaluating )
-    //     //TypeError: undefined is not an object (evaluating 'resultList.map')
-    //     return results.map ((chat) =><Text>{chat.message}</Text>);
-    // }
+const firestoreRows = results.map ((chat) => {
+    <>
+    <Text>message:{chat.message} \n</Text>
+    <Text>date:{chat.sendTime}</Text>
+    </>
+});
 
     var textInputRef = React.createRef<TextInput>();
 
     const dispatch = useDispatch();
+
+    function loadDocument() {
+        const documentRef = firestore().collection('messages')
+         
+        //documentRef.get().then(snapshot => {
+        const subscriber =  documentRef.onSnapshot(snapshot => {
+            
+            snapshot.forEach(documentSnapshot => {
+                console.log('User ID: ', documentSnapshot.id, documentSnapshot.data());
+                const { message, sendTime } = documentSnapshot.data();
+                console.log('loadDocument message:', message);
+                console.log('loadDocument time:', sendTime);
+                //const chat = Chat {message: message};
+                dispatch(addChat( {message: message, sendTime: sendTime.toString()}));
+                
+            });
+            //results.map((info) => console.log('loadDocument', info.message) );
+        })
+        return subscriber;
+        
+      }
+
+    useEffect(() => {
+       const subscriber =  loadDocument() 
+        return () => subscriber();
+    },[]);
 
     return (
         <>
@@ -55,7 +76,7 @@ const StoreTestAppScreen = () => {
         ref={ textInputRef }
         onChangeText={(text) => onChangeText(text)}
         />
-        <Button title="Add" 
+        <Button title="Save" 
                 onPress= {() => {
                     if(value != "") {
                         //setInfos( [...infos, value]);
@@ -67,13 +88,7 @@ const StoreTestAppScreen = () => {
                         
                     }
                    }
-                 } />
-         <Button title="Load" 
-                onPress= {() => {
-                    console.log('Load onPress');
-                    dispatch(loadChat())
-                }
-        }    />    
+                 } />   
         </SafeAreaView>
         </>
     );
